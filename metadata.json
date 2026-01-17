@@ -1,0 +1,5 @@
+{
+  "name": "LearnX",
+  "description": "A guided learning platform powered by Gemini, featuring AI-generated courses, audio lessons, and curated video content.",
+  "requestFramePermissions": []
+}

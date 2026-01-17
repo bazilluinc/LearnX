@@ -1,127 +1,151 @@
 
 import React, { useState } from 'react';
 import { User, Course } from '../types';
-import { ChevronRight, Search, LayoutGrid, BookOpen, Sparkles, ArrowLeft } from 'lucide-react';
-
-const CATEGORIES = [
-  "Artificial Intelligence", "Blockchain Tech", "Cybersecurity", "Data Science", "Ethical Hacking", 
-  "Financial Literacy", "Game Development", "History of Art", "Interstellar Travel", "JavaScript Mastery", 
-  "Kitchen Chemistry", "Language Arts", "Marine Biology", "Nanotechnology", "Organic Gardening", 
-  "Philosophy", "Quantum Physics", "Renewable Energy", "Space Exploration", "Theology", 
-  "Urban Planning", "Visual Effects", "Web3 Architecture", "Xylography", "Yoga Science", 
-  "Zoology", "Alternative Medicine", "Behavioral Economics", "Cognitive Science", "Digital Marketing", 
-  "Electronic Music", "Forensic Science", "Genetic Engineering", "Human Rights", "Industrial Design", 
-  "Journalism", "Kinesiology", "Law", "Macroeconomics", "Nuclear Energy", 
-  "Optics", "Paleontology", "Robotics", "Social Psychology", "Thermodynamics", 
-  "Virology", "Wildlife Conservation", "Xenobiology", "Youth Mentorship", "Zen Architecture"
-];
-
-// Generate 200 course titles per category logically
-const generateCoursesForCategory = (category: string): string[] => {
-  return Array.from({ length: 200 }, (_, i) => `${category} Specialist Level ${i + 1}`);
-};
+import { architectCareerRoadmap } from '../services/geminiService';
+import { ChevronRight, Search, Map, Sparkles, ArrowLeft, Loader2, Target, Briefcase } from 'lucide-react';
 
 export const Career: React.FC<{ onCourseSelect: (course: Course) => void }> = ({ onCourseSelect }) => {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
+  const [goal, setGoal] = useState('');
+  const [roadmap, setRoadmap] = useState<Course[] | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const filteredCategories = CATEGORIES.filter(c => c.toLowerCase().includes(search.toLowerCase()));
+  const handleGenerate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!goal.trim()) return;
+    setLoading(true);
+    const result = await architectCareerRoadmap(goal);
+    setRoadmap(result);
+    setLoading(false);
+  };
 
-  if (selectedCategory) {
-    const courses = generateCoursesForCategory(selectedCategory);
+  if (loading) {
     return (
-      <div className="flex flex-col h-full bg-white dark:bg-gray-950 animate-in slide-in-from-right duration-300">
-        <header className="p-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-4 sticky top-0 bg-white/90 dark:bg-gray-950/90 backdrop-blur-md z-10">
-          <button onClick={() => setSelectedCategory(null)} className="p-2 text-gray-500 hover:text-black dark:hover:text-white">
-            <ArrowLeft size={20} />
-          </button>
-          <h2 className="font-bold text-gray-900 dark:text-white truncate">{selectedCategory}</h2>
+      <div className="flex flex-col items-center justify-center h-full p-8 text-center animate-in fade-in duration-500">
+        <div className="relative mb-8">
+            <div className="w-24 h-24 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center animate-pulse">
+                <Target size={40} className="text-blue-600" />
+            </div>
+            <Sparkles className="absolute -top-2 -right-2 text-blue-500 animate-bounce" size={24} />
+        </div>
+        <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-2">Architecting your future...</h2>
+        <p className="text-gray-500 text-sm max-w-xs">Gemini 3 Pro is auditing 10,000+ career paths to build your specialized roadmap.</p>
+        <Loader2 className="animate-spin text-blue-600 mt-8" size={32} />
+      </div>
+    );
+  }
+
+  if (roadmap) {
+    return (
+      <div className="p-6 pb-24 space-y-8 animate-in slide-in-from-bottom-4 duration-500">
+        <header className="flex items-center justify-between">
+           <button onClick={() => setRoadmap(null)} className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full text-gray-500">
+              <ArrowLeft size={20} />
+           </button>
+           <div className="text-right">
+              <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full">Pro Architect Active</span>
+           </div>
         </header>
-        <div className="flex-1 overflow-y-auto p-4 space-y-2 pb-24">
-          <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-4">200 Mastery Tracks Available</p>
-          {courses.map((title, i) => (
-            <button 
-              key={i}
-              onClick={() => onCourseSelect({
-                id: `generated-${title.replace(/\s+/g, '-').toLowerCase()}`,
-                title: title,
-                description: `Deep dive into ${title}. Powered by Gemini.`,
-                imageUrl: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=400',
-                category: selectedCategory,
-                modules: [],
-                totalModules: 5,
-                duration: '6 Weeks',
-                reviews: []
-              })}
-              className="w-full p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-transparent hover:border-blue-500 hover:bg-white dark:hover:bg-gray-800 transition-all text-left flex items-center justify-between group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 font-bold text-xs">
-                  {i + 1}
+
+        <div>
+           <h1 className="text-2xl font-bold dark:text-white">Your Career Path</h1>
+           <p className="text-sm text-gray-500 mt-1">Goal: {goal}</p>
+        </div>
+
+        <div className="relative space-y-6">
+           <div className="absolute left-6 top-10 bottom-10 w-1 bg-gradient-to-b from-blue-600 via-indigo-500 to-transparent rounded-full opacity-20" />
+           {roadmap.map((course, idx) => (
+             <button 
+                key={idx}
+                onClick={() => onCourseSelect({
+                  ...course,
+                  modules: [],
+                  totalModules: 5,
+                  reviews: []
+                })}
+                className="w-full relative z-10 flex gap-6 items-start text-left group"
+             >
+                <div className="w-12 h-12 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border-4 border-gray-50 dark:border-gray-950 flex items-center justify-center text-blue-600 font-black text-lg group-hover:bg-blue-600 group-hover:text-white transition-all transform group-active:scale-90">
+                   {idx + 1}
                 </div>
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-blue-600">{title}</span>
-              </div>
-              <ChevronRight size={16} className="text-gray-300 group-hover:translate-x-1 transition-transform" />
-            </button>
-          ))}
+                <div className="flex-1 bg-white dark:bg-gray-900 p-5 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800 group-hover:border-blue-500/50 transition-all">
+                   <h3 className="font-bold text-gray-900 dark:text-white mb-1">{course.title}</h3>
+                   <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{course.description}</p>
+                   <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-50 dark:border-gray-800">
+                      <span className="text-[10px] font-bold text-blue-600 uppercase">{course.category}</span>
+                      <ChevronRight size={14} className="text-gray-300 group-hover:text-blue-500 transition-colors" />
+                   </div>
+                </div>
+             </button>
+           ))}
+        </div>
+
+        <div className="p-4 bg-indigo-50 dark:bg-indigo-900/10 rounded-2xl text-center">
+            <p className="text-xs text-indigo-700 dark:text-indigo-300 font-medium">Complete these three tracks to reach 100% Industry Readiness.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-4 pb-24 bg-gray-50 dark:bg-gray-950 min-h-screen">
-      <header className="mb-6">
-        <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">Pathways</h1>
-        <p className="text-sm text-gray-500 mt-1">Explore 10,000+ AI-driven mastery tracks.</p>
-      </header>
-
-      <div className="relative mb-6">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-        <input 
-          type="text" 
-          placeholder="Search categories..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-11 pr-4 py-3.5 bg-white dark:bg-gray-900 rounded-2xl border-none shadow-sm text-sm focus:ring-2 focus:ring-blue-500/20"
-        />
+    <div className="p-6 pb-24 min-h-screen bg-gray-50 dark:bg-gray-950">
+      <div className="mb-12 text-center pt-8">
+         <div className="w-20 h-20 bg-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-blue-500/40 transform -rotate-6">
+            <Map className="text-white" size={40} />
+         </div>
+         <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight">Architect.</h1>
+         <p className="text-gray-500 mt-2">What is your ultimate career ambition?</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        {filteredCategories.map((cat, i) => (
-          <button 
-            key={i}
-            onClick={() => setSelectedCategory(cat)}
-            className="p-5 rounded-2xl bg-white dark:bg-gray-900 shadow-sm border border-gray-100 dark:border-gray-800 hover:border-blue-500 hover:scale-[1.02] transition-all text-left group"
-          >
-            <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center mb-3 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-              <BookOpen size={20} />
-            </div>
-            <h3 className="font-bold text-gray-900 dark:text-white text-sm leading-tight mb-1">{cat}</h3>
-            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">200 Courses</p>
-          </button>
-        ))}
+      <form onSubmit={handleGenerate} className="space-y-4 max-w-sm mx-auto">
+        <div className="relative">
+          <textarea 
+            rows={3}
+            value={goal}
+            onChange={(e) => setGoal(e.target.value)}
+            placeholder="e.g., I want to lead a design team building sustainable homes in Mars..."
+            className="w-full p-6 bg-white dark:bg-gray-900 rounded-3xl border-none shadow-xl focus:ring-2 focus:ring-blue-500/20 text-sm dark:text-white resize-none"
+          />
+          <div className="absolute -bottom-2 -right-2 p-3 bg-blue-600 text-white rounded-2xl shadow-lg animate-pulse">
+            <Sparkles size={20} />
+          </div>
+        </div>
+        
+        <button 
+          type="submit"
+          className="w-full py-5 bg-gray-900 dark:bg-blue-600 text-white rounded-2xl font-bold shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3"
+        >
+          <Target size={20} />
+          Architect My Path
+        </button>
+      </form>
+
+      <div className="mt-12 grid grid-cols-2 gap-4 opacity-40">
+         {["AI Specialist", "Game Director", "Marine Tech", "Bio Ethicist"].map(t => (
+           <div key={t} className="p-4 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+             {t}
+           </div>
+         ))}
       </div>
     </div>
   );
 };
 
 export const Books: React.FC = () => (
-  <div className="p-6 pb-24 text-center">
-    <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600">
+  <div className="p-12 pb-24 text-center">
+    <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-indigo-600">
        <span className="text-3xl">📚</span>
     </div>
-    <h2 className="text-2xl font-bold text-gray-900 mb-2">Library</h2>
-    <p className="text-gray-500">Curated reading lists and resources to supplement your audio lessons.</p>
+    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Knowledge Vault</h2>
+    <p className="text-gray-500 dark:text-gray-400 text-sm">A centralized repository of every citation and resource referenced in your personalized path.</p>
   </div>
 );
 
 export const Learn: React.FC = () => (
-  <div className="p-6 pb-24 text-center">
-    <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600">
+  <div className="p-12 pb-24 text-center">
+    <div className="w-20 h-20 bg-emerald-50 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-emerald-600">
        <span className="text-3xl">🎓</span>
     </div>
-    <h2 className="text-2xl font-bold text-gray-900 mb-2">My Learning</h2>
-    <p className="text-gray-500">Track your progress and revisit completed courses here.</p>
+    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">My Progression</h2>
+    <p className="text-gray-500 dark:text-gray-400 text-sm">Review your mastered nodes and continue your active career tracks.</p>
   </div>
 );

@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -7,6 +8,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
+      // Shim process.env for browser compatibility
+      window.process = {
+        env: {
+          API_KEY: "" // This will be populated by the environment if available
+        }
+      };
+      
       tailwind.config = {
         darkMode: 'class',
         theme: {
@@ -22,7 +30,7 @@
                 300: '#93c5fd',
                 400: '#60a5fa',
                 500: '#3b82f6',
-                600: '#2563eb', // Guided Learning Blue
+                600: '#2563eb',
                 700: '#1d4ed8',
                 800: '#1e40af',
                 900: '#1e3a8a',
@@ -36,10 +44,8 @@
       body {
         font-family: 'Inter', sans-serif;
         background-color: #f8fafc;
-        /* Prevent pull-to-refresh on mobile to feel more like an app */
         overscroll-behavior-y: none;
       }
-      /* Hide scrollbar for clean horizontal scrolling */
       .no-scrollbar::-webkit-scrollbar {
         display: none;
       }
@@ -64,5 +70,7 @@
 </head>
   <body>
     <div id="root"></div>
+    <!-- Explicitly load index.tsx as a module for standard web server support -->
+    <script type="module" src="index.tsx"></script>
   </body>
 </html>

@@ -176,4 +176,67 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, currentUser, onBack
         {isFinished && (
           <div className="mb-8 p-6 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl text-white shadow-xl shadow-blue-500/20 animate-in zoom-in-95 duration-500">
              <div className="flex items-center gap-4 mb-4">
-                <div className="p-3 bg-
+                <div className="p-3 bg-white/20 backdrop-blur-md rounded-2xl">
+                   <Award size={32} />
+                </div>
+                <div>
+                   <h2 className="text-xl font-bold flex items-center gap-2">
+                      Track Mastered! <PartyPopper size={20} />
+                   </h2>
+                   <p className="text-blue-100 text-sm">You have achieved 100% mastery in this curriculum.</p>
+                </div>
+             </div>
+             <button 
+                onClick={downloadCertificate}
+                className="w-full py-4 bg-white text-blue-600 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-blue-50 active:scale-95 transition-all shadow-lg"
+             >
+                <Download size={20} />
+                Download Certificate
+             </button>
+          </div>
+        )}
+
+        <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-2xl border border-blue-100 dark:border-blue-900/30 mb-8">
+           <div className="flex items-start gap-3">
+              <Sparkles className="text-blue-600 mt-1" size={18} />
+              <p className="text-sm text-blue-900 dark:text-blue-100 font-medium">
+                {summaryLoading ? "Gemini is distilling this course for you..." : summary}
+              </p>
+           </div>
+        </div>
+
+        <div className="space-y-6 relative">
+          <div className="absolute left-[22px] top-4 bottom-4 w-0.5 bg-gray-100 dark:bg-gray-800" />
+          {loading ? (
+            <div className="text-center py-12 text-gray-400 text-sm animate-pulse">Syncing curriculum...</div>
+          ) : (
+            modules.map((module, index) => {
+              const isLocked = index > 0 && !modules[index - 1].isCompleted;
+              return (
+                <div 
+                  key={module.id} 
+                  onClick={() => !isLocked && onModuleSelect(module, course.title)}
+                  className={`relative flex gap-4 transition-all ${isLocked ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:translate-x-1'}`}
+                >
+                  <div className={`z-10 w-12 h-12 rounded-full flex items-center justify-center border-4 border-white dark:border-gray-900 shadow-sm ${module.isCompleted ? 'bg-green-500 text-white' : 'bg-white dark:bg-gray-800 text-blue-600'}`}>
+                    {module.isCompleted ? <CheckCircle size={20} /> : isLocked ? <Lock size={18} /> : <span>{index + 1}</span>}
+                  </div>
+                  <div className="flex-1 pb-4 border-b border-gray-50 dark:border-gray-800">
+                    <h3 className="font-bold text-gray-900 dark:text-white mb-1">{module.title}</h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{module.description}</p>
+                    <div className="mt-2 flex items-center gap-2">
+                       <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{module.steps.length} steps</span>
+                       {module.isCompleted && <span className="text-[10px] bg-green-50 dark:bg-green-900/30 text-green-600 px-2 py-0.5 rounded-full font-bold">Done</span>}
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CourseDetail;

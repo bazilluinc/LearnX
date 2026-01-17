@@ -1,122 +1,101 @@
 
 import React, { useState, useEffect } from 'react';
-import { HashRouter } from 'react-router-dom';
-import Auth from './components/Auth';
 import BottomNav from './components/BottomNav';
 import Explore from './views/Explore';
+import { Career, Learn } from './views/PlaceholderViews';
+import ForumView from './views/ForumView';
+import SettingsView from './views/SettingsView';
 import CourseDetail from './views/CourseDetail';
 import LessonView from './views/LessonView';
-import SettingsView from './views/SettingsView';
-import ForumView from './views/ForumView';
-import { Career, Books, Learn } from './views/PlaceholderViews';
-import { NavTab, User, Course, Module } from './types';
+import Auth from './components/Auth';
+import { NavTab, Course, User, Module } from './types';
 
-const MainContent = () => {
-  const [user, setUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('learnx_user');
-    return saved ? JSON.parse(saved) : null;
-  });
-  const [activeTab, setActiveTab] = useState<NavTab>(NavTab.EXPLORE);
+// Main App component with default export fixed
+const App: React.FC = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [currentTab, setCurrentTab] = useState<NavTab>(NavTab.EXPLORE);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-  const [selectedModule, setSelectedModule] = useState<Module | null>(null);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [activeModule, setActiveModule] = useState<{module: Module, courseTitle: string} | null>(null);
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
+  // Sync dark mode class with state
   useEffect(() => {
-    if (user) {
-      localStorage.setItem('learnx_user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('learnx_user');
-    }
-  }, [user]);
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      setIsDarkMode(true);
+    if (isDarkMode) {
       document.documentElement.classList.add('dark');
     } else {
-      setIsDarkMode(false);
       document.documentElement.classList.remove('dark');
     }
-  }, []);
+  }, [isDarkMode]);
 
-  const toggleDarkMode = () => {
-    const newMode = !isDarkMode;
-    setIsDarkMode(newMode);
-    if (newMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
+  const handleLogout = () => {
+    setUser(null);
+    setCurrentTab(NavTab.EXPLORE);
+    setSelectedCourse(null);
+    setActiveModule(null);
   };
 
-  const handleModuleUpdate = (updatedModule: Module) => {
-    if (selectedCourse) {
-      const updatedModules = selectedCourse.modules.map(m => 
-        m.id === updatedModule.id ? updatedModule : m
-      );
-      setSelectedCourse({ ...selectedCourse, modules: updatedModules });
-    }
-    setSelectedModule(null);
-  };
-
+  // Auth Guard
   if (!user) {
     return <Auth onLogin={setUser} />;
   }
 
-  if (selectedModule && selectedCourse) {
+  // Deep View Guard: Active Lesson
+  if (activeModule && selectedCourse) {
     return (
       <LessonView 
-        module={selectedModule} 
+        module={activeModule.module}
         courseId={selectedCourse.id}
         courseTitle={selectedCourse.title}
         userId={user.id}
-        onBack={handleModuleUpdate}
+        onBack={(updatedModule) => {
+          setActiveModule(null);
+        }}
       />
     );
   }
 
+  // Deep View Guard: Course Detail
   if (selectedCourse) {
     return (
       <CourseDetail 
-        course={selectedCourse} 
+        course={selectedCourse}
         currentUser={user}
-        onBack={() => setSelectedCourse(null)} 
-        onModuleSelect={(module) => setSelectedModule(module)}
+        onBack={() => setSelectedCourse(null)}
+        onModuleSelect={(module, courseTitle) => setActiveModule({module, courseTitle})}
       />
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
-      <main className="max-w-md mx-auto min-h-screen bg-white dark:bg-gray-900 shadow-2xl overflow-hidden relative transition-colors duration-300">
-        {activeTab === NavTab.EXPLORE && <Explore onCourseSelect={setSelectedCourse} />}
-        {activeTab === NavTab.CAREER && <Career onCourseSelect={setSelectedCourse} />}
-        {activeTab === NavTab.BOOKS && <Books />}
-        {activeTab === NavTab.FORUM && <ForumView />}
-        {activeTab === NavTab.LEARN && <Learn />}
-        {activeTab === NavTab.PROFILE && (
+  // Router Logic for Main Tabs
+  const renderContent = () => {
+    switch (currentTab) {
+      case NavTab.EXPLORE:
+        return <Explore onCourseSelect={setSelectedCourse} />;
+      case NavTab.CAREER:
+        return <Career onCourseSelect={setSelectedCourse} />;
+      case NavTab.FORUM:
+        return <ForumView />;
+      case NavTab.LEARN:
+        return <Learn />;
+      case NavTab.PROFILE:
+        return (
           <SettingsView 
             user={user} 
-            onLogout={() => setUser(null)} 
+            onLogout={handleLogout} 
             isDarkMode={isDarkMode} 
-            toggleDarkMode={toggleDarkMode}
+            toggleDarkMode={() => setIsDarkMode(!isDarkMode)} 
           />
-        )}
-        
-        <BottomNav currentTab={activeTab} onTabChange={setActiveTab} />
-      </main>
-    </div>
-  );
-};
+        );
+      default:
+        return <Explore onCourseSelect={setSelectedCourse} />;
+    }
+  };
 
-const App: React.FC = () => {
   return (
-    <HashRouter>
-      <MainContent />
-    </HashRouter>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
+      {renderContent()}
+      <BottomNav currentTab={currentTab} onTabChange={setCurrentTab} />
+    </div>
   );
 };
 

@@ -1,16 +1,38 @@
 
+export interface PlanetData {
+  name: string;
+  color: string;
+  distance: number;
+  size: number;
+  speed: number;
+  description: string;
+}
+
+export interface AIInsight {
+  cosmicFacts: string[];
+  history: string;
+  futureMissions: string[];
+}
+
+export interface QuizQuestion {
+  question: string;
+  options: string[];
+  correctAnswer: number;
+}
+
+// LearnX Types
+export enum NavTab {
+  EXPLORE = 'explore',
+  CAREER = 'career',
+  FORUM = 'forum',
+  LEARN = 'learn',
+  PROFILE = 'settings',
+}
+
 export interface User {
   id: string;
   name: string;
   email: string;
-}
-
-export interface Review {
-  id: string;
-  userName: string;
-  rating: number;
-  comment: string;
-  date: string;
 }
 
 export interface Step {
@@ -25,15 +47,7 @@ export interface Module {
   title: string;
   description: string;
   isCompleted: boolean;
-  isRemedial?: boolean;
   steps: Step[];
-}
-
-export interface GeneratedCourseOutline {
-  modules: {
-    title: string;
-    description: string;
-  }[];
 }
 
 export interface Course {
@@ -42,28 +56,16 @@ export interface Course {
   description: string;
   imageUrl: string;
   category: string;
-  modules: Module[];
-  totalModules: number;
   duration: string;
-  reviews: Review[];
+  modules: Module[];
+  totalModules?: number;
+  reviews?: any[];
 }
 
-export enum NavTab {
-  EXPLORE = 'explore',
-  CAREER = 'career',
-  BOOKS = 'books',
-  FORUM = 'forum',
-  LEARN = 'learn',
-  PROFILE = 'profile',
+export interface GeneratedCourseOutline {
+  modules: { title: string; description: string; steps: { title: string }[] }[];
 }
 
 export interface Quiz {
-  questions: Question[];
-}
-
-export interface Question {
-  id: string;
-  text: string;
-  options: string[];
-  correctAnswerIndex: number;
+  questions: { text: string; options: string[]; correctAnswer: number }[];
 }
